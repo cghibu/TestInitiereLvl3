@@ -8,12 +8,12 @@ namespace TestInitiereLvl3
     {
         public uint baseToConvertTo;
         public uint numberToConvert;
-        byte[] numberInBaseAsByteString;
+        private byte[] numberInBaseAsByteString;
 
-        public void AllocateStorage()
+        private byte[] AllocateStorage()
         {
             uint powerOfBase = (uint)Math.Truncate(Math.Log(numberToConvert, baseToConvertTo));
-            numberInBaseAsByteString = new byte[powerOfBase + 1];         
+            return new byte[powerOfBase + 1];         
         }
 
         public BaseConvertStructure(uint inputBase, uint inputNumber)
@@ -21,37 +21,115 @@ namespace TestInitiereLvl3
             baseToConvertTo = inputBase;
             numberToConvert = inputNumber;
             numberInBaseAsByteString = null;
+            numberInBaseAsByteString = AllocateStorage();
+            ConvertNumberToBase(baseToConvertTo, numberToConvert, 0, ref numberInBaseAsByteString);
+            TransposeArray(ref numberInBaseAsByteString);
         }
 
-        public void ConvertInputToBase()
+        private void TransposeArray(ref byte[] arrayToTranspose)
+        {
+            for (int i = 0; i < arrayToTranspose.Length/2; i++)
+            {
+                byte temp = arrayToTranspose[i];
+                arrayToTranspose[i] = arrayToTranspose[arrayToTranspose.Length - i - 1];
+                arrayToTranspose[arrayToTranspose.Length - i - 1] = temp;
+             }
+
+        }
+
+        private void ConvertNumberToBase(uint theBase, uint theNumber, int recurrsion, ref byte[] result)
+        {
+                     
+            uint div = theNumber / theBase;
+            uint reminder = theNumber % theBase;
+            result[recurrsion] = (byte)reminder;
+            if (div >= baseToConvertTo)
+            {
+                ConvertNumberToBase(theBase, div, recurrsion + 1, ref result);
+            }
+            else
+            {
+                result[recurrsion+1] = (byte)div;
+            }
+                                   
+        }
+        public byte[] GetBaseRepresentation()
+        {
+            return numberInBaseAsByteString;
+        }
+
+        public byte[] Not()
         {
 
-            AllocateStorage();
-            uint mod = numberToConvert / baseToConvertTo;
-            uint reminder = numberToConvert % baseToConvertTo;
-            int indexToInsertTo = 0;
-            if (mod > baseToConvertTo)
+            for (int i = 0; i < numberInBaseAsByteString.Length; i++)
             {
-                numberInBaseAsByteString[indexToInsertTo] = (byte)reminder;
-                indexToInsertTo = indexToInsertTo + 1;
-                ConvertInputToBase()
+                byte temp = numberInBaseAsByteString[i];
+                numberInBaseAsByteString[i] = (byte)(baseToConvertTo - 1 - temp);
             }
-            
 
-
-
-
+            return numberInBaseAsByteString;
         }
-        
     }
 
     [TestClass]
     public class TestBaseConvertor
     {
         [TestMethod]
-        public void TestMethod1()
+        public void TestConstructorandConversionBase2()
         {
-            
+
+            BaseConvertStructure test = new BaseConvertStructure(2,22);
+            byte[] result = test.GetBaseRepresentation();
+            byte[] expected = new byte[5];
+            expected[0] = 1;
+            expected[1] = 0;
+            expected[2] = 1;
+            expected[3] = 1;
+            expected[4] = 0;
+
+            CollectionAssert.AreEqual(result, expected);   
         }
+        [TestMethod]
+        public void TestConstructorandConversionBase5()
+        {
+
+            BaseConvertStructure test = new BaseConvertStructure(5, 75);
+            byte[] expected = new byte[3];
+            expected[0] = 3;
+            expected[1] = 0;
+            expected[2] = 0;
+
+            byte[] result = test.GetBaseRepresentation();
+
+            CollectionAssert.AreEqual(result, expected);
+        }
+        [TestMethod]
+        public void TestNotOperationBase2()
+        {
+
+            BaseConvertStructure test = new BaseConvertStructure(2, 22);
+            byte[] result = test.Not();
+            byte[] expected = new byte[5];
+            expected[0] = 0;
+            expected[1] = 1;
+            expected[2] = 0;
+            expected[3] = 0;
+            expected[4] = 1;
+
+            CollectionAssert.AreEqual(result, expected);
+        }
+        [TestMethod]
+        public void TestNotOperationBase5()
+        {
+
+            BaseConvertStructure test = new BaseConvertStructure(5, 13);
+            byte[] result = test.Not();
+            byte[] expected = new byte[2];
+            expected[0] = 2;
+            expected[1] = 1;
+            
+            CollectionAssert.AreEqual(result, expected);
+        }
+
     }
 }
